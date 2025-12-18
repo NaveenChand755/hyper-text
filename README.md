@@ -211,38 +211,128 @@ HyperText
 - **Ctrl/Cmd + Z**: Undo
 - **Ctrl/Cmd + Y**: Redo
 
-## Project Structure
+## Project Structure (Monorepo)
 
 ```
 hyper-text/
-├── src/
-│   ├── components/
-│   │   ├── RichTextEditor.tsx       # Main editor
-│   │   ├── VirtualizedEditor.tsx    # Virtualized version
-│   │   ├── PerformanceTest.tsx      # Benchmark lab
-│   │   ├── Toolbar.tsx              # Google Docs toolbar
-│   │   ├── HeadingSelector.tsx      # Heading dropdown
-│   │   ├── ColorPicker.tsx          # Text/highlight colors
-│   │   └── Preview.tsx              # HTML/Text/JSON preview
-│   ├── hooks/
-│   │   └── useLoroEditor.ts         # Loro CRDT hook
-│   ├── types/
-│   │   └── editor.ts                # TypeScript types
-│   ├── App.tsx                      # Main app
-│   ├── main.tsx                     # Entry point
-│   └── index.css                    # Global styles
-├── vite.config.ts                   # Vite + WASM config
-├── tailwind.config.js               # Tailwind v4 config
-└── package.json
+├── packages/
+│   └── editor/                      # @hyper-text/editor (NPM package)
+│       ├── src/
+│       │   ├── components/
+│       │   │   ├── Editor.tsx       # Main editor (virtualized + standard)
+│       │   │   ├── Toolbar.tsx      # Google Docs toolbar
+│       │   │   ├── HeadingSelector.tsx
+│       │   │   ├── ColorPicker.tsx
+│       │   │   └── Preview.tsx
+│       │   ├── hooks/
+│       │   │   └── useLoroEditor.ts # Loro CRDT hook
+│       │   ├── types/
+│       │   │   └── editor.ts        # TypeScript types
+│       │   └── styles/
+│       │       └── editor.css       # Editor styles
+│       ├── package.json
+│       └── vite.config.ts           # Library build config
+│
+├── apps/
+│   └── demo/                        # @hyper-text/demo (Demo app)
+│       ├── src/
+│       │   ├── components/
+│       │   │   ├── PerformanceTestEditor.tsx
+│       │   │   └── Sidebar.tsx
+│       │   └── App.tsx
+│       └── package.json
+│
+├── pnpm-workspace.yaml              # PNPM workspaces config
+├── package.json                     # Root monorepo scripts
+├── tsconfig.json                    # Root TypeScript config
+└── README.md
 ```
 
-## Build for Production
+## 📊 Bundle Size
+
+| Package | Size (minified) | Size (gzipped) |
+|---------|-----------------|----------------|
+| `@hyper-text/editor` | ~45KB | ~15KB |
+
+Run `pnpm analyze` to generate interactive bundle analysis.
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm 8+
+
+### Installation
 
 ```bash
-npm run build
+# Install dependencies
+pnpm install
+
+# Build the editor package first
+pnpm build:editor
+
+# Start the demo app
+pnpm dev
 ```
 
-The built files will be in the `dist` directory.
+### Available Scripts
+
+```bash
+pnpm dev              # Run demo app in dev mode
+pnpm build            # Build all packages
+pnpm build:editor     # Build editor package only
+pnpm analyze          # Generate bundle size treemap
+pnpm clean            # Clean all dist folders
+```
+
+## Using @hyper-text/editor
+
+### Installation
+
+```bash
+pnpm add @hyper-text/editor
+```
+
+### Basic Usage
+
+```tsx
+import { Editor } from '@hyper-text/editor';
+import '@hyper-text/editor/styles.css';
+
+function App() {
+  return <Editor showVirtualizationToggle showPreview />;
+}
+```
+
+### With External State
+
+```tsx
+import { Editor, useLoroEditor } from '@hyper-text/editor';
+import '@hyper-text/editor/styles.css';
+
+function App() {
+  const { content, updateContent } = useLoroEditor();
+  
+  return (
+    <Editor
+      externalContent={content}
+      onContentChange={updateContent}
+      enableVirtualization
+    />
+  );
+}
+```
+
+### Editor Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `enableVirtualization` | `boolean` | `false` | Enable virtualized rendering |
+| `showVirtualizationToggle` | `boolean` | `false` | Show virtualization toggle |
+| `showPreview` | `boolean` | `true` | Show HTML/Text/JSON preview |
+| `externalContent` | `string` | - | Controlled content |
+| `onContentChange` | `(html: string) => void` | - | Content change handler |
 
 ## Roadmap
 

@@ -21,7 +21,7 @@ const PreviewComponent: React.FC<PreviewProps> = ({ content, mode, onModeChange 
     const div = document.createElement('div');
     div.innerHTML = content;
 
-    const parseNode = (node: Node): any => {
+    const parseNode = (node: Node): unknown => {
       if (node.nodeType === Node.TEXT_NODE) {
         return { type: 'text', content: node.textContent };
       }

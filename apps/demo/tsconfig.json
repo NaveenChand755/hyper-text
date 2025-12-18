@@ -9,7 +9,6 @@
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": true,
@@ -18,10 +17,10 @@
     "noUncheckedSideEffectImports": true,
     "composite": true,
     "declaration": true,
-    "declarationMap": true
+    "emitDeclarationOnly": true,
+    "declarationDir": "./dist",
+    "outDir": "./dist"
   },
-  "references": [
-    { "path": "./packages/editor" },
-    { "path": "./apps/demo" }
-  ]
+  "include": ["src"],
+  "references": [{ "path": "../../packages/editor" }]
 }

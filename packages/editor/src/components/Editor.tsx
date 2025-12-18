@@ -1,32 +1,128 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo, memo } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Toolbar } from './Toolbar';
 import { Preview } from './Preview';
 import { useLoroEditor } from '../hooks/useLoroEditor';
 import { ToolbarAction, TextFormat, PreviewMode } from '../types/editor';
-import { Store } from '@tanstack/react-store';
+import { Zap } from 'lucide-react';
 
-interface EditorSelection {
-  start: number;
-  end: number;
+interface EditorProps {
+  enableVirtualization?: boolean;
+  showVirtualizationToggle?: boolean;
+  showPreview?: boolean;
+  externalContent?: string;
+  onContentChange?: (content: string) => void;
 }
 
-// Create a store for editor state management
-const editorStore = new Store<{
-  format: TextFormat;
-  selection: EditorSelection;
-}>({
-  format: {},
-  selection: { start: 0, end: 0 },
-});
+interface EditorBlock {
+  id: string;
+  content: string;
+  type: 'text' | 'heading' | 'list' | 'code' | 'blockquote';
+}
 
-export const RichTextEditor: React.FC = () => {
+const parseContentIntoBlocks = (html: string): EditorBlock[] => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const blocks: EditorBlock[] = [];
+  let blockId = 0;
+
+  const processNode = (node: Node) => {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+      const tagName = element.tagName.toLowerCase();
+
+      if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+        blocks.push({
+          id: `block-${blockId++}`,
+          content: element.outerHTML,
+          type: 'heading',
+        });
+      } else if (['ul', 'ol'].includes(tagName)) {
+        blocks.push({
+          id: `block-${blockId++}`,
+          content: element.outerHTML,
+          type: 'list',
+        });
+      } else if (tagName === 'pre') {
+        blocks.push({
+          id: `block-${blockId++}`,
+          content: element.outerHTML,
+          type: 'code',
+        });
+      } else if (tagName === 'blockquote') {
+        blocks.push({
+          id: `block-${blockId++}`,
+          content: element.outerHTML,
+          type: 'blockquote',
+        });
+      } else if (tagName === 'p' || tagName === 'div') {
+        blocks.push({
+          id: `block-${blockId++}`,
+          content: element.outerHTML || element.textContent || '',
+          type: 'text',
+        });
+      } else {
+        // Process children
+        Array.from(element.childNodes).forEach(processNode);
+      }
+    } else if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+      blocks.push({
+        id: `block-${blockId++}`,
+        content: `<p>${node.textContent}</p>`,
+        type: 'text',
+      });
+    }
+  };
+
+  Array.from(doc.body.childNodes).forEach(processNode);
+
+  // If no blocks found, add a default empty block
+  if (blocks.length === 0) {
+    blocks.push({
+      id: 'block-0',
+      content: '<p><br/></p>',
+      type: 'text',
+    });
+  }
+
+  return blocks;
+};
+
+export const Editor: React.FC<EditorProps> = ({
+  enableVirtualization: initialVirtualization = false,
+  showVirtualizationToggle = false,
+  showPreview = true,
+  externalContent,
+  onContentChange,
+}) => {
+  const editorContainerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const isUpdatingRef = useRef(false);
-  const [selection, setSelection] = useState<EditorSelection>({ start: 0, end: 0 });
   const [currentFormat, setCurrentFormat] = useState<TextFormat>({});
   const [previewMode, setPreviewMode] = useState<PreviewMode>('html');
+  const [useVirtualization, setUseVirtualization] = useState(initialVirtualization);
+  const internalEditor = useLoroEditor();
+  const content = externalContent !== undefined ? externalContent : internalEditor.content;
+  const updateContent = onContentChange !== undefined ? onContentChange : internalEditor.updateContent;
 
-  const { content, updateContent } = useLoroEditor();
+  // Update virtualization when prop changes
+  useEffect(() => {
+    setUseVirtualization(initialVirtualization);
+  }, [initialVirtualization]);
+
+  const blocks = useMemo(() => {
+    if (!useVirtualization || !content) return [];
+    return parseContentIntoBlocks(content);
+  }, [content, useVirtualization]);
+
+  // Setup virtualizer
+  const rowVirtualizer = useVirtualizer({
+    count: blocks.length,
+    getScrollElement: () => editorContainerRef.current,
+    estimateSize: () => 50,
+    overscan: 5,
+    enabled: useVirtualization,
+  });
 
   // Save cursor position
   const saveCursorPosition = useCallback(() => {
@@ -41,8 +137,7 @@ export const RichTextEditor: React.FC = () => {
       const caretOffset = preCaretRange.toString().length;
 
       return caretOffset;
-    } catch (error) {
-      // Return null if there's an error getting the range
+    } catch {
       return null;
     }
   }, []);
@@ -89,13 +184,12 @@ export const RichTextEditor: React.FC = () => {
     }
   }, []);
 
-  // Update editor content from Loro
+  // Update editor content from Loro (only for standard mode)
   useEffect(() => {
-    if (!editorRef.current || isUpdatingRef.current) return;
+    if (!editorRef.current || isUpdatingRef.current || useVirtualization) return;
 
     const cursorPos = saveCursorPosition();
 
-    // Use innerHTML to preserve formatting
     if (editorRef.current.innerHTML !== content) {
       editorRef.current.innerHTML = content;
 
@@ -103,23 +197,13 @@ export const RichTextEditor: React.FC = () => {
         restoreCursorPosition(cursorPos);
       }
     }
-  }, [content, saveCursorPosition, restoreCursorPosition]);
-
-  useEffect(() => {
-    editorStore.setState((state) => ({
-      ...state,
-      format: currentFormat,
-      selection,
-    }));
-  }, [currentFormat, selection]);
+  }, [content, saveCursorPosition, restoreCursorPosition, useVirtualization]);
 
   const handleToolbarAction = useCallback((action: ToolbarAction, value?: string) => {
     if (!editorRef.current) return;
 
-    // Focus the editor first to ensure commands work
     editorRef.current.focus();
 
-    // Save current selection
     const selection = window.getSelection();
     let savedRange: Range | null = null;
 
@@ -127,7 +211,6 @@ export const RichTextEditor: React.FC = () => {
       savedRange = selection.getRangeAt(0).cloneRange();
     }
 
-    // Execute the command
     switch (action) {
       case 'bold':
         document.execCommand('bold', false, undefined);
@@ -146,10 +229,9 @@ export const RichTextEditor: React.FC = () => {
         setCurrentFormat((prev) => ({ ...prev, strikethrough: !prev.strikethrough }));
         break;
       case 'code':
-        // Wrap selection in <code> tag
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
           const selectedText = range.toString();
           const code = document.createElement('code');
           code.textContent = selectedText;
@@ -232,7 +314,6 @@ export const RichTextEditor: React.FC = () => {
         break;
     }
 
-    // Restore selection if needed
     if (savedRange && selection) {
       try {
         selection.removeAllRanges();
@@ -242,7 +323,6 @@ export const RichTextEditor: React.FC = () => {
       }
     }
 
-    // Force update of content
     setTimeout(() => {
       if (editorRef.current) {
         const event = new Event('input', { bubbles: true });
@@ -256,19 +336,8 @@ export const RichTextEditor: React.FC = () => {
 
     isUpdatingRef.current = true;
 
-    // Use innerHTML to preserve formatting like lists, bold, etc.
     const html = editorRef.current.innerHTML || '';
     updateContent(html);
-
-    // Update selection
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0);
-      setSelection({
-        start: range.startOffset,
-        end: range.endOffset
-      });
-    }
 
     setTimeout(() => {
       isUpdatingRef.current = false;
@@ -302,7 +371,6 @@ export const RichTextEditor: React.FC = () => {
     }
   };
 
-  // Memoize editor styles to avoid recalculation on every render
   const editorStyles = useMemo(() => {
     const styles: React.CSSProperties = {};
 
@@ -322,32 +390,103 @@ export const RichTextEditor: React.FC = () => {
     return styles;
   }, [currentFormat]);
 
-  // Memoize word and line count for better performance
   const stats = useMemo(() => {
-    // Use textContent from editor ref to get actual text without HTML tags
     const text = editorRef.current?.textContent || '';
     const chars = text.length;
     const words = text.trim().split(/\s+/).filter(Boolean).length;
     const lines = text.split('\n').length;
-    return { chars, words, lines };
-  }, [content]); // Keep content as dependency so it updates when content changes
+    return { chars, words, lines, blocks: blocks.length };
+  }, [content, blocks.length]);
 
   return (
     <>
-      <div className="w-full max-w-5xl mx-auto my-8 bg-white rounded-lg shadow-lg border border-gray-200">
+      <div className="hyper-editor w-full max-w-5xl mx-auto my-8 bg-white rounded-lg shadow-lg border border-gray-200">
         <Toolbar onAction={handleToolbarAction} currentFormat={currentFormat} />
 
         <div className="p-6">
-          <div
-            ref={editorRef}
-            contentEditable
-            onInput={handleInput}
-            onKeyDown={handleKeyDown}
-            className="min-h-[500px] p-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 rounded-md border border-gray-200 transition-shadow duration-200"
-            style={editorStyles}
-            suppressContentEditableWarning
-            spellCheck
-          />
+          {/* Virtualization Toggle */}
+          {showVirtualizationToggle && (
+            <div className="mb-4 flex items-center gap-3 text-sm">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useVirtualization}
+                  onChange={(e) => setUseVirtualization(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300"
+                />
+                <span className="text-gray-700">
+                  Enable Virtualization {useVirtualization && `(${blocks.length} blocks)`}
+                </span>
+              </label>
+              {useVirtualization && (
+                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded flex items-center gap-1">
+                  <Zap size={12} /> Virtualized - Only visible blocks rendered
+                </span>
+              )}
+            </div>
+          )}
+
+          {useVirtualization ? (
+            // Virtualized Mode
+            <div
+              ref={editorContainerRef}
+              data-editor-scroll-container
+              className="min-h-[500px] max-h-[600px] overflow-auto border border-gray-200 rounded-md"
+            >
+              <div
+                style={{
+                  height: `${rowVirtualizer.getTotalSize()}px`,
+                  width: '100%',
+                  position: 'relative',
+                }}
+              >
+                {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const block = blocks[virtualRow.index];
+                  return (
+                    <div
+                      key={virtualRow.key}
+                      data-index={virtualRow.index}
+                      ref={rowVirtualizer.measureElement}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                      className="p-4"
+                    >
+                      <div
+                        contentEditable
+                        dangerouslySetInnerHTML={{ __html: block.content }}
+                        className="focus:outline-none"
+                        onInput={handleInput}
+                        onKeyDown={handleKeyDown}
+                        suppressContentEditableWarning
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            // Standard Mode
+            <div
+              data-editor-scroll-container
+              className="min-h-[500px] max-h-[600px] overflow-auto border border-gray-200 rounded-md"
+            >
+              <div
+                ref={editorRef}
+                contentEditable
+                onInput={handleInput}
+                onKeyDown={handleKeyDown}
+                className="min-h-[500px] p-4 focus:outline-none"
+                style={editorStyles}
+                suppressContentEditableWarning
+                spellCheck
+              />
+            </div>
+          )}
         </div>
 
         <div className="px-6 py-3 bg-gray-50 border-t border-gray-200 rounded-b-lg text-sm text-gray-600">
@@ -356,18 +495,22 @@ export const RichTextEditor: React.FC = () => {
               <span>Characters: {stats.chars}</span>
               <span>Words: {stats.words}</span>
               <span>Lines: {stats.lines}</span>
+              {useVirtualization && <span>Blocks: {stats.blocks}</span>}
             </div>
-            <span className="text-gray-500">Powered by Loro CRDT</span>
+            <span className="text-gray-500">
+              Powered by Loro CRDT {useVirtualization && '+ TanStack Virtual'}
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="w-full max-w-5xl mx-auto mb-8">
-        <Preview content={content} mode={previewMode} onModeChange={setPreviewMode} />
-      </div>
+      {showPreview && (
+        <div className="w-full max-w-5xl mx-auto mb-8">
+          <Preview content={content} mode={previewMode} onModeChange={setPreviewMode} />
+        </div>
+      )}
     </>
   );
 };
 
-// Memoize the entire component to prevent unnecessary re-renders
-export default memo(RichTextEditor);
+export default memo(Editor);
