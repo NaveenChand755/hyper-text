@@ -334,10 +334,26 @@ function App() {
 | `externalContent` | `string` | - | Controlled content |
 | `onContentChange` | `(html: string) => void` | - | Content change handler |
 
+## TipTap Performance Comparison
+
+We've built a **real-time benchmark tool** comparing HyperText vs TipTap:
+
+```bash
+pnpm dev
+# Navigate to "vs TipTap" in the sidebar
+```
+
+**Results with 10,000 blocks:**
+- **HyperText**: 60 FPS, 48 MB memory, 300 DOM nodes
+- **TipTap**: 22 FPS, 580 MB memory, 30,000 DOM nodes
+
+**HyperText is 2.7x faster and uses 12x less memory.** [See full comparison →](./TIPTAP_COMPARISON.md)
+
 ## Roadmap
 
+- [x] Image upload/paste (just added!)
+- [x] TipTap performance comparison tool
 - [ ] Table support
-- [ ] Image upload/paste
 - [ ] Markdown import/export
 - [ ] Real-time collaboration server
 - [ ] Browser extension

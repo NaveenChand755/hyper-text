@@ -18,6 +18,8 @@ import {
   Quote,
   Minus,
   CornerDownLeft,
+  Image,
+  Table,
 } from 'lucide-react';
 import { ToolbarAction, TextFormat } from '../types/editor';
 import { ColorPicker } from './ColorPicker';
@@ -135,6 +137,16 @@ const ToolbarComponent: React.FC<ToolbarProps> = ({ onAction, currentFormat }) =
       action: 'hardBreak' as ToolbarAction,
       icon: CornerDownLeft,
       title: 'Hard break',
+    },
+    {
+      action: 'image' as ToolbarAction,
+      icon: Image,
+      title: 'Insert image',
+    },
+    {
+      action: 'table' as ToolbarAction,
+      icon: Table,
+      title: 'Insert table',
     },
   ];
 

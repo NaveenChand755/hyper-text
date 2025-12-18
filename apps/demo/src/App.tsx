@@ -2,12 +2,13 @@ import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Editor } from "@hyper-text/editor";
 import { PerformanceTestEditor } from "./components/PerformanceTestEditor";
+import { EditorComparison } from "./components/EditorComparison";
 import { Sidebar } from "./components/Sidebar";
 import "@hyper-text/editor/styles.css";
 
 const queryClient = new QueryClient();
 
-type Page = "editor" | "performance";
+type Page = "editor" | "performance" | "comparison";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("editor");
@@ -37,8 +38,10 @@ function App() {
                 </footer>
               </div>
             </div>
-          ) : (
+          ) : currentPage === "performance" ? (
             <PerformanceTestEditor />
+          ) : (
+            <EditorComparison />
           )}
         </main>
       </div>

@@ -123,3 +123,63 @@
 .hyper-editor a:hover {
   color: #1d4ed8;
 }
+
+/* Images */
+.hyper-editor [contenteditable] img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  margin: 1em 0;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.hyper-editor [contenteditable] img:hover {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.hyper-editor [contenteditable] img:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Tables */
+.hyper-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+  table-layout: auto;
+}
+
+.hyper-editor table td,
+.hyper-editor table th {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
+  min-width: 100px;
+  vertical-align: top;
+}
+
+.hyper-editor table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  text-align: left;
+}
+
+.hyper-editor table tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Mentions */
+.hyper-editor .mention {
+  color: #3b82f6;
+  background-color: #eff6ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.hyper-editor .mention:hover {
+  background-color: #dbeafe;
+}

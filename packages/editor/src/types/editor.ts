@@ -41,10 +41,18 @@ export type ToolbarAction =
   | 'blockquote'
   | 'horizontalRule'
   | 'hardBreak'
+  | 'image'
+  | 'table'
   | 'alignLeft'
   | 'alignCenter'
   | 'alignRight'
   | 'undo'
   | 'redo';
+
+export interface MentionUser {
+  id: string;
+  name: string;
+  avatar?: string;
+}
 
 export type PreviewMode = 'html' | 'text' | 'json';
