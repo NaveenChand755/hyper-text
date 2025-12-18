@@ -1,0 +1,83 @@
+# =========================
+# Dependencies
+# =========================
+node_modules/
+.pnp/
+.pnp.js
+
+# =========================
+# Build outputs
+# =========================
+dist/
+build/
+out/
+.esbuild/
+.turbo/
+.next/
+
+# =========================
+# Logs
+# =========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Editor / IDE
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# TypeScript
+# =========================
+*.tsbuildinfo
+
+# =========================
+# Coverage / tests
+# =========================
+coverage/
+.nyc_output/
+
+# =========================
+# Cache / temp
+# =========================
+.cache/
+.tmp/
+.temp/
+
+# =========================
+# Storybook
+# =========================
+storybook-static/
+
+# =========================
+# Lockfiles (choose ONE strategy)
+# =========================
+# Uncomment if you want to commit only one lockfile
+# yarn.lock
+# package-lock.json
+# pnpm-lock.yaml
+
+# =========================
+# Loro / WASM / native artifacts (if any)
+# =========================
+*.wasm
+*.node
