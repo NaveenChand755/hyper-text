@@ -1,5 +1,5 @@
 {
-  "name": "hyper-text-editor",
+  "name": "nextext-editor",
   "version": "0.1.0",
   "description": "A modern, customizable rich text editor for React with shadcn/ui patterns, Tailwind CSS styling, and collaborative editing powered by Loro CRDT",
   "type": "module",
