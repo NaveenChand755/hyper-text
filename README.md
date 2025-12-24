@@ -4,10 +4,6 @@
 
 [![npm version](https://img.shields.io/npm/v/nextext-editor)](https://www.npmjs.com/package/nextext-editor)
 
-## Preview
-
-![NextText Editor Screenshot](./assets/editor.png)
-
 ## Features
 
 - 🎨 **Rich Formatting** - Bold, italic, underline, strikethrough, inline code, text color, and highlighting
