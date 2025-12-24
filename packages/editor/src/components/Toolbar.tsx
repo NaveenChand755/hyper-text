@@ -24,10 +24,12 @@ import {
 import { ToolbarAction, TextFormat } from '../types/editor';
 import { ColorPicker } from './ColorPicker';
 import { HeadingSelector } from './HeadingSelector';
+import { editorTokens } from '../lib/tokens';
 
 interface ToolbarProps {
   onAction: (action: ToolbarAction, value?: string) => void;
   currentFormat: TextFormat;
+  tokens?: typeof editorTokens;
 }
 
 interface ToolbarButton {

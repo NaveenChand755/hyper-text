@@ -1,0 +1,46 @@
+# Source files
+src/
+*.ts
+*.tsx
+!*.d.ts
+
+# Config files
+tsconfig.json
+vite.config.ts
+tailwind.config.ts
+postcss.config.js
+.eslintrc.cjs
+
+# Development
+node_modules/
+.vscode/
+.idea/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Tests
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+coverage/
+
+# Build artifacts
+stats.html
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Documentation (keep README and LICENSE)
+ARCHITECTURE.md
+CUSTOMIZATION.md
+
+# Git
+.git/
+.gitignore
+.gitattributes

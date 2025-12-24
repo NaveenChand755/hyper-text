@@ -1,6 +1,7 @@
 {
-  "name": "@hyper-text/editor",
-  "version": "0.0.1",
+  "name": "hyper-text-editor",
+  "version": "0.1.0",
+  "description": "A modern, customizable rich text editor for React with shadcn/ui patterns, Tailwind CSS styling, and collaborative editing powered by Loro CRDT",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
@@ -13,7 +14,9 @@
     "./styles.css": "./dist/styles.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "sideEffects": [
     "*.css"
@@ -22,6 +25,7 @@
     "dev": "vite build --watch",
     "build": "vite build && tsc --emitDeclarationOnly",
     "build:analyze": "ANALYZE=true vite build",
+    "prepublishOnly": "pnpm run build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "peerDependencies": {
@@ -30,9 +34,11 @@
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.13.13",
+    "clsx": "^2.1.1",
     "highlight.js": "^11.11.1",
     "loro-crdt": "^1.0.0",
-    "lucide-react": "^0.561.0"
+    "lucide-react": "^0.561.0",
+    "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
@@ -51,17 +57,32 @@
     "vite-plugin-wasm": "^3.5.0"
   },
   "keywords": [
+    "react",
     "editor",
     "rich-text",
-    "virtualized",
+    "wysiwyg",
+    "contenteditable",
+    "tailwindcss",
+    "shadcn",
+    "design-tokens",
+    "customizable",
+    "collaborative",
     "crdt",
     "loro",
-    "react"
+    "typescript"
   ],
   "author": "NaveenChand",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/NaveenChand755/hyper-text"
+  },
+  "bugs": {
+    "url": "https://github.com/NaveenChand755/hyper-text/issues"
+  },
+  "homepage": "https://github.com/NaveenChand755/hyper-text#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
   }
 }
