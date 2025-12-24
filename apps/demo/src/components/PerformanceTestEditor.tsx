@@ -12,7 +12,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import { Editor, useLoroEditor } from 'hyper-text-editor';
+import { Editor, useLoroEditor } from 'nextext-editor';
 
 interface PerformanceMetrics {
   domNodes: number;

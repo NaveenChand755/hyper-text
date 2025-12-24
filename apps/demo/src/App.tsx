@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Editor } from "hyper-text-editor";
+import { Editor } from "nextext-editor";
 import { PerformanceTestEditor } from "./components/PerformanceTestEditor";
 import { EditorComparison } from "./components/EditorComparison";
 import { Sidebar } from "./components/Sidebar";
-import "hyper-text-editor/styles.css";
+import "nextext-editor/styles.css";
 
 const queryClient = new QueryClient();
 

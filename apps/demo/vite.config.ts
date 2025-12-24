@@ -6,6 +6,6 @@ import topLevelAwait from 'vite-plugin-top-level-await';
 export default defineConfig({
   plugins: [react(), wasm(), topLevelAwait()],
   optimizeDeps: {
-    exclude: ['hyper-text-editor'],
+    exclude: ['nextext-editor'],
   },
 });
