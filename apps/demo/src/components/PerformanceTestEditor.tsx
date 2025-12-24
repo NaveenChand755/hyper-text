@@ -12,7 +12,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import { Editor, useLoroEditor } from 'nextext-editor';
+import { EditorBlock, useLoroEditor } from 'nextext-editor';
 
 interface PerformanceMetrics {
   domNodes: number;
@@ -441,8 +441,9 @@ export const PerformanceTestEditor: React.FC = () => {
       <div className="flex-1 bg-gray-100 overflow-hidden" ref={containerRef}>
         <div className="h-full p-6">
           <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden">
-            <Editor 
+            <EditorBlock
               showPreview={false}
+              showToolbar={false}
               externalContent={content}
               onContentChange={updateContent}
             />

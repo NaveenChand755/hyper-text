@@ -1,318 +1,183 @@
-import React, { memo } from 'react';
-import { Toolbar } from './Toolbar';
-import { EditorBlock } from './block';
-import { Preview } from './Preview';
-import { useLoroEditor } from '../hooks/useLoroEditor';
+import React, { useRef, useEffect, useCallback } from 'react';
 import { editorTokens } from '../lib/tokens';
 import { cn } from '../lib/utils';
-import type { ToolbarAction, TextFormat, PreviewMode } from '../types/editor';
 
 export interface EditorProps {
-  /**
-   * Initial content (HTML string)
-   */
-  initialContent?: string;
-
-  /**
-   * Show preview panel
-   */
-  showPreview?: boolean;
-
-  /**
-   * Show toolbar
-   */
-  showToolbar?: boolean;
-
-  /**
-   * External content control (for controlled component)
-   */
-  externalContent?: string;
-
-  /**
-   * Content change handler (for controlled component)
-   */
-  onContentChange?: (content: string) => void;
-
-  /**
-   * Custom class name for container
-   */
-  className?: string;
-
-  /**
-   * Placeholder text
-   */
+  content: string;
+  onContentChange: (content: string) => void;
   placeholder?: string;
-
-  /**
-   * Custom design tokens
-   */
+  className?: string;
   tokens?: typeof editorTokens;
 }
 
-const EditorComponent: React.FC<EditorProps> = ({
-  showPreview = false,
-  showToolbar = true,
-  externalContent,
+export const Editor: React.FC<EditorProps> = ({
+  content,
   onContentChange,
-  className,
   placeholder = 'Start typing...',
+  className,
   tokens = editorTokens,
 }) => {
-  const internalEditor = useLoroEditor();
-  const [previewMode, setPreviewMode] = React.useState<PreviewMode>('html');
-  const [currentFormat, setCurrentFormat] = React.useState<TextFormat>({});
+  const editorRef = useRef<HTMLDivElement>(null);
+  const isUpdatingRef = useRef(false);
 
-  // Use external content if provided, otherwise use internal
-  const content = externalContent !== undefined ? externalContent : internalEditor.content;
-  const updateContent = onContentChange !== undefined ? onContentChange : internalEditor.updateContent;
+  // Save cursor position
+  const saveCursorPosition = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || !editorRef.current || sel.rangeCount === 0) return null;
 
-  const handleToolbarAction = (action: ToolbarAction, value?: string) => {
-    switch (action) {
-      case 'bold':
-        document.execCommand('bold');
-        setCurrentFormat((prev) => ({ ...prev, bold: !prev.bold }));
-        break;
-      case 'italic':
-        document.execCommand('italic');
-        setCurrentFormat((prev) => ({ ...prev, italic: !prev.italic }));
-        break;
-      case 'underline':
-        document.execCommand('underline');
-        setCurrentFormat((prev) => ({ ...prev, underline: !prev.underline }));
-        break;
-      case 'strikethrough':
-        document.execCommand('strikeThrough');
-        setCurrentFormat((prev) => ({ ...prev, strikethrough: !prev.strikethrough }));
-        break;
-      case 'code':
-        const sel = window.getSelection();
-        if (sel && sel.rangeCount > 0) {
-          const range = sel.getRangeAt(0);
-          const selectedText = range.toString();
-
-          // If selection is empty, check if we're inside a code element
-          if (!selectedText) {
-            let node = range.startContainer;
-            if (node.nodeType === Node.TEXT_NODE) {
-              node = node.parentNode as Node;
-            }
-
-            // Find if we're inside a code element
-            let codeElement: HTMLElement | null = null;
-            let current: Node | null = node;
-            while (current && current !== document.body) {
-              if (current.nodeName === 'CODE') {
-                codeElement = current as HTMLElement;
-                break;
-              }
-              current = current.parentNode;
-            }
-
-            // If we're inside code, unwrap it
-            if (codeElement && codeElement.parentNode) {
-              const textNode = document.createTextNode(codeElement.textContent || '');
-              codeElement.parentNode.replaceChild(textNode, codeElement);
-
-              // Place cursor after the text
-              const newRange = document.createRange();
-              newRange.setStartAfter(textNode);
-              newRange.collapse(true);
-              sel.removeAllRanges();
-              sel.addRange(newRange);
-            }
-          } else {
-            // Wrap selection in code
-            const code = document.createElement('code');
-            code.className = 'px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-sm';
-            code.textContent = selectedText;
-            range.deleteContents();
-            range.insertNode(code);
-
-            // Add a space after code element to allow continuing
-            const space = document.createTextNode('\u200B'); // Zero-width space
-            code.parentNode?.insertBefore(space, code.nextSibling);
-
-            // Move cursor after the code element
-            const newRange = document.createRange();
-            newRange.setStartAfter(code);
-            newRange.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(newRange);
-          }
-        }
-        break;
-      case 'textColor':
-        if (value) {
-          document.execCommand('foreColor', false, value);
-          setCurrentFormat((prev) => ({ ...prev, color: value }));
-        }
-        break;
-      case 'highlight':
-        if (value) {
-          document.execCommand('hiliteColor', false, value);
-          setCurrentFormat((prev) => ({ ...prev, backgroundColor: value }));
-        }
-        break;
-      case 'clearMarks':
-        document.execCommand('removeFormat');
-        setCurrentFormat({});
-        break;
-      case 'clearNodes':
-        document.execCommand('formatBlock', false, 'p');
-        break;
-      case 'paragraph':
-        document.execCommand('formatBlock', false, 'p');
-        break;
-      case 'h1':
-      case 'h2':
-      case 'h3':
-      case 'h4':
-      case 'h5':
-      case 'h6':
-        document.execCommand('formatBlock', false, action);
-        break;
-      case 'bulletList':
-        document.execCommand('insertUnorderedList');
-        break;
-      case 'numberedList':
-        document.execCommand('insertOrderedList');
-        break;
-      case 'codeBlock':
-        document.execCommand('formatBlock', false, 'pre');
-        break;
-      case 'blockquote':
-        document.execCommand('formatBlock', false, 'blockquote');
-        break;
-      case 'horizontalRule':
-        document.execCommand('insertHorizontalRule');
-        break;
-      case 'hardBreak':
-        document.execCommand('insertLineBreak');
-        break;
-      case 'image':
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
-        input.onchange = async (e) => {
-          const file = (e.target as HTMLInputElement).files?.[0];
-          if (!file) return;
-
-          // Validate file size (max 5MB)
-          if (file.size > 5 * 1024 * 1024) {
-            alert('Image size must be less than 5MB');
-            return;
-          }
-
-          try {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64 = reader.result as string;
-
-              // Insert image using document.execCommand
-              document.execCommand('insertImage', false, base64);
-
-              // Find the inserted image and add styling
-              setTimeout(() => {
-                const images = document.querySelectorAll('.hyper-editor [contenteditable] img');
-                const lastImage = images[images.length - 1] as HTMLImageElement;
-                if (lastImage && !lastImage.classList.contains('editor-image')) {
-                  lastImage.classList.add('editor-image');
-                  lastImage.style.maxWidth = '100%';
-                  lastImage.style.height = 'auto';
-                  lastImage.style.borderRadius = '0.5rem';
-                  lastImage.style.margin = '1rem 0';
-                }
-              }, 10);
-            };
-            reader.onerror = () => {
-              alert('Failed to read image file');
-            };
-            reader.readAsDataURL(file);
-          } catch (error) {
-            console.error('Image upload failed:', error);
-            alert('Failed to upload image');
-          }
-        };
-        input.click();
-        break;
-      case 'table':
-        const tableHTML = `
-          <table style="border-collapse: collapse; width: 100%; margin: 1em 0;">
-            <tbody>
-              <tr>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem; min-width: 100px;">Cell 1</td>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem; min-width: 100px;">Cell 2</td>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem; min-width: 100px;">Cell 3</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem;">Cell 4</td>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem;">Cell 5</td>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem;">Cell 6</td>
-              </tr>
-              <tr>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem;">Cell 7</td>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem;">Cell 8</td>
-                <td style="border: 1px solid #e5e7eb; padding: 0.5rem;">Cell 9</td>
-              </tr>
-            </tbody>
-          </table>
-          <p><br></p>
-        `.trim();
-        document.execCommand('insertHTML', false, tableHTML);
-        break;
-      case 'undo':
-        document.execCommand('undo');
-        break;
-      case 'redo':
-        document.execCommand('redo');
-        break;
+    try {
+      const range = sel.getRangeAt(0);
+      const preCaretRange = range.cloneRange();
+      preCaretRange.selectNodeContents(editorRef.current);
+      preCaretRange.setEnd(range.endContainer, range.endOffset);
+      return preCaretRange.toString().length;
+    } catch {
+      return null;
     }
-  };
+  }, []);
+
+  // Restore cursor position
+  const restoreCursorPosition = useCallback((position: number) => {
+    if (!editorRef.current || position === null) return;
+
+    const sel = window.getSelection();
+    if (!sel) return;
+
+    const createRange = (node: Node, chars: { count: number }): Range | null => {
+      if (chars.count === 0) {
+        const range = document.createRange();
+        range.setStart(node, 0);
+        range.setEnd(node, 0);
+        return range;
+      }
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        const textNode = node as Text;
+        if (textNode.length >= chars.count) {
+          const range = document.createRange();
+          range.setStart(node, chars.count);
+          range.setEnd(node, chars.count);
+          return range;
+        } else {
+          chars.count -= textNode.length;
+        }
+      } else {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          const range = createRange(node.childNodes[i], chars);
+          if (range) return range;
+        }
+      }
+      return null;
+    };
+
+    const range = createRange(editorRef.current, { count: position });
+    if (range) {
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }, []);
+
+  // Handle input changes
+  const handleInput = useCallback(() => {
+    if (!editorRef.current) return;
+
+    isUpdatingRef.current = true;
+    const html = editorRef.current.innerHTML || '';
+    onContentChange(html);
+
+    setTimeout(() => {
+      isUpdatingRef.current = false;
+    }, 0);
+  }, [onContentChange]);
+
+  // Handle keyboard events to help escape inline code
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const range = sel.getRangeAt(0);
+    let node = range.startContainer;
+    if (node.nodeType === Node.TEXT_NODE) {
+      node = node.parentNode as Node;
+    }
+
+    // Check if we're at the boundary of a code element
+    let current: Node | null = node;
+    while (current && current !== editorRef.current) {
+      if (current.nodeName === 'CODE') {
+        const codeElement = current as HTMLElement;
+
+        // Right arrow at end of code - exit to the right
+        if (e.key === 'ArrowRight' && range.endOffset === (range.endContainer.textContent?.length || 0)) {
+          e.preventDefault();
+          const newRange = document.createRange();
+          if (codeElement.nextSibling) {
+            newRange.setStart(codeElement.nextSibling, 0);
+          } else {
+            // Create a text node after code if none exists
+            const textNode = document.createTextNode('\u200B');
+            codeElement.parentNode?.insertBefore(textNode, codeElement.nextSibling);
+            newRange.setStart(textNode, 0);
+          }
+          newRange.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+          return;
+        }
+
+        // Left arrow at start of code - exit to the left
+        if (e.key === 'ArrowLeft' && range.startOffset === 0) {
+          e.preventDefault();
+          const newRange = document.createRange();
+          if (codeElement.previousSibling) {
+            const prev = codeElement.previousSibling;
+            newRange.setStart(prev, prev.textContent?.length || 0);
+          } else {
+            // Create a text node before code if none exists
+            const textNode = document.createTextNode('\u200B');
+            codeElement.parentNode?.insertBefore(textNode, codeElement);
+            newRange.setStart(textNode, 0);
+          }
+          newRange.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(newRange);
+          return;
+        }
+        break;
+      }
+      current = current.parentNode;
+    }
+  }, []);
+
+  // Update editor content when content prop changes
+  useEffect(() => {
+    if (!editorRef.current || isUpdatingRef.current) return;
+
+    const cursorPos = saveCursorPosition();
+
+    if (editorRef.current.innerHTML !== content) {
+      editorRef.current.innerHTML = content;
+
+      if (cursorPos !== null) {
+        restoreCursorPosition(cursorPos);
+      }
+    }
+  }, [content, saveCursorPosition, restoreCursorPosition]);
 
   return (
-    <div className={cn('hyper-editor', className)}>
-      <div className={tokens.container.base}>
-        {showToolbar && (
-          <Toolbar
-            onAction={handleToolbarAction}
-            currentFormat={currentFormat}
-            tokens={tokens}
-          />
-        )}
-
-        <EditorBlock
-          content={content}
-          onContentChange={updateContent}
-          placeholder={placeholder}
-          tokens={tokens}
-        />
-
-        <div className={tokens.stats.container}>
-          <div className="flex justify-between items-center">
-            <div className="flex gap-4">
-              <span className={tokens.stats.item}>
-                Characters: {content.replace(/<[^>]*>/g, '').length}
-              </span>
-              <span className={tokens.stats.item}>
-                Words: {content.replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {showPreview && (
-        <div className="mt-8">
-          <Preview
-            content={content}
-            mode={previewMode}
-            onModeChange={setPreviewMode}
-          />
-        </div>
-      )}
+    <div className={cn(tokens.editor.container, 'editor-scroll-container')} data-editor-scroll-container>
+      <div
+        ref={editorRef}
+        contentEditable
+        onInput={handleInput}
+        onKeyDown={handleKeyDown}
+        className={cn(tokens.editor.base, className)}
+        suppressContentEditableWarning
+        spellCheck
+        data-placeholder={placeholder}
+      />
     </div>
   );
 };
 
-export const Editor = memo(EditorComponent);
 export default Editor;

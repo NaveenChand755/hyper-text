@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileText, Activity, Zap, Settings, Github, BookOpen, TrendingUp } from 'lucide-react';
 
-type Page = 'editor' | 'performance' | 'comparison';
+type Page = 'editor' | 'performance';
 
 interface SidebarProps {
   currentPage: Page;
@@ -12,7 +12,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange }) =
   const navItems = [
     { id: 'editor' as Page, label: 'Editor', icon: FileText, description: 'Rich text editing' },
     { id: 'performance' as Page, label: 'Performance', icon: Activity, description: 'Stress testing' },
-    { id: 'comparison' as Page, label: 'vs TipTap', icon: TrendingUp, description: 'Head-to-head FPS' },
   ];
 
   return (

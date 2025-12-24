@@ -1,387 +1,329 @@
-# HyperText Editor
+# NextText Editor
 
-> The rich text editor built for the AI era. Handle unlimited AI-generated content at 60 FPS.
+> A modern, customizable rich text editor for React with shadcn/ui patterns, Tailwind CSS styling, and collaborative editing powered by Loro CRDT.
 
-[![Performance](https://img.shields.io/badge/FPS-60-success)](https://github.com)
-[![Memory](https://img.shields.io/badge/Memory-12x%20less-blue)](https://github.com)
-[![License](https://img.shields.io/badge/license-MIT-green)](https://github.com)
+[![npm version](https://img.shields.io/npm/v/nextext-editor)](https://www.npmjs.com/package/nextext-editor)
 
-## Why HyperText?
+## Preview
 
-**Traditional editors** (TipTap, ProseMirror, Quill) **choke** when handling AI-generated content:
-
-- 🐌 Laggy scrolling with 2,000+ paragraphs
-- 💾 Memory bloat (500MB+ for large docs)
-- 📱 Crashes on mobile devices
-- ⚠️ Poor UX for AI writing assistants
-
-**HyperText** uses **virtual scrolling** to render only what's visible:
-
-```
-TipTap (10K blocks):        HyperText (10K blocks):
-├─ Renders: 10,000 nodes    ├─ Renders: ~40 nodes
-├─ Memory: 580MB            ├─ Memory: 48MB (12x less!)
-└─ Scroll: 22 FPS (janky)   └─ Scroll: 60 FPS (smooth!)
-```
-
-## Perfect For AI Applications
-
-### ✅ AI Writing Assistants
-```typescript
-// Stream ChatGPT responses without lag
-const { content, updateContent } = useLoroEditor()
-
-const streamAI = async () => {
-  const response = await fetch('/api/ai/generate')
-  const stream = response.body.getReader()
-
-  while (true) {
-    const { done, value } = await stream.read()
-    if (done) break
-
-    updateContent(content + decode(value))
-    // ✅ Smooth even when AI generates 10,000+ words
-  }
-}
-```
-
-### ✅ Document Generation Platforms
-Generate 20-page contracts, proposals, reports—all at 60 FPS.
-
-### ✅ Real-Time AI Suggestions
-Analyze entire documents and display 100+ AI suggestions without lag.
-
-### ✅ Collaborative AI Editing
-Built-in Loro CRDT for real-time collaboration (zero config).
+![NextText Editor Screenshot](./assets/editor-screenshot.png)
 
 ## Features
 
-- ⚡ **Virtual Scrolling** - Unlimited document size, constant 60 FPS
-- 🤖 **AI-First** - Smooth streaming, real-time updates, no lag
-- 🔄 **Built-in Collaboration** - Loro CRDT (vs TipTap's 50+ line Y.js setup)
-- 💾 **Memory Efficient** - 12x less memory than TipTap
-- 📱 **Mobile Optimized** - Low memory, high performance
-- 🎨 **Rich Formatting** - Bold, italic, headings, lists, colors, code blocks
-- ⌨️ **Google Docs UI** - Familiar toolbar, keyboard shortcuts
-- 🔍 **Live Preview** - HTML, Text, JSON modes
+- 🎨 **Rich Formatting** - Bold, italic, underline, strikethrough, inline code, text color, and highlighting
+- 📝 **Block Types** - Headings (H1-H6), paragraphs, bullet lists, numbered lists, blockquotes, code blocks, horizontal rules
+- 🖼️ **Media Support** - Image upload with drag-and-drop (max 5MB, auto-styled)
+- 📊 **Tables** - Insert and edit tables with styled cells
+- 🔄 **Built-in Collaboration** - Loro CRDT for conflict-free real-time editing
+- 🎨 **Customizable Design** - shadcn/ui-inspired design tokens for easy theming
+- 📱 **Responsive** - Works seamlessly on desktop and mobile
+- ⌨️ **Keyboard Shortcuts** - Familiar shortcuts (Ctrl/Cmd+B, I, U, Z, Y)
+- 🔍 **Live Preview** - View your content in HTML, Text, or JSON format
+- 📊 **Word & Character Count** - Real-time statistics display
+- 🎯 **TypeScript** - Fully typed for better DX
+
+## Installation
+
+```bash
+npm install nextext-editor
+# or
+yarn add nextext-editor
+# or
+pnpm add nextext-editor
+```
 
 ## Quick Start
 
-### Installation
+### Basic Usage
 
-```bash
-npm install
-```
+```tsx
+import { EditorBlock } from 'nextext-editor';
+import 'nextext-editor/styles.css';
 
-### Development
-
-```bash
-npm run dev
-```
-
-Open `http://localhost:5173` in your browser.
-
-### AI Integration Example
-
-```typescript
-import { useLoroEditor } from './hooks/useLoroEditor'
-import { VirtualizedEditor } from './components/VirtualizedEditor'
-
-function AIWritingApp() {
-  const { content, updateContent } = useLoroEditor()
-
-  const generateWithAI = async (prompt: string) => {
-    const response = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      stream: true,
-    })
-
-    let aiContent = ''
-    for await (const chunk of response) {
-      aiContent += chunk.choices[0]?.delta?.content || ''
-      updateContent(content + aiContent)
-    }
-  }
-
-  return (
-    <div>
-      <VirtualizedEditor />
-      <button onClick={() => generateWithAI('Write a blog post')}>
-        Generate with AI
-      </button>
-    </div>
-  )
+function App() {
+  return <EditorBlock placeholder="Start writing..." />;
 }
 ```
 
-## Performance Test
+### With Preview Panel
 
-Run the built-in performance lab to see the difference:
+```tsx
+import { EditorBlock } from 'nextext-editor';
+import 'nextext-editor/styles.css';
 
-1. Click "Performance Test" in the header
-2. Generate 10,000 blocks **without** virtualization
-   - Watch FPS drop to ~20-30
-   - Memory spikes to 500MB+
-3. Enable virtualization
-   - FPS jumps to 60
-   - Memory drops to ~50MB
-4. Use auto-scroll to stress test
-
-**See the difference yourself!**
-
-## Comparison with TipTap
-
-| Feature | TipTap | HyperText |
-|---------|--------|-----------|
-| **Max document size** | ~2,000 ¶ | Unlimited |
-| **FPS (10K blocks)** | 22 FPS | 60 FPS |
-| **Memory (10K blocks)** | 580MB | 48MB |
-| **AI streaming** | Laggy | Smooth |
-| **Collaboration setup** | 50+ lines | 3 lines |
-| **Mobile performance** | Poor | Excellent |
-| **Extension ecosystem** | 100+ | Growing |
-
-**See detailed comparison**: [VS_TIPTAP_PROSEMIRROR.md](./VS_TIPTAP_PROSEMIRROR.md)
-
-## AI Use Cases
-
-### 1. AI Writing Assistant (like Jasper.ai)
-Stream AI content without performance issues.
-
-### 2. Document Generator (Contracts, Proposals)
-Generate 20-page documents instantly without lag.
-
-### 3. Real-Time Suggestions (like Grammarly)
-Analyze 10,000 words and show suggestions while maintaining 60 FPS.
-
-### 4. Collaborative AI Editing
-Team + AI editing simultaneously with Loro CRDT handling conflicts automatically.
-
-**More examples**: [MARKETING.md#ai-use-cases](./MARKETING.md#ai-use-cases-the-killer-feature)
-
-## Architecture
-
+function App() {
+  return (
+    <EditorBlock
+      showPreview
+      placeholder="Start writing..."
+    />
+  );
+}
 ```
-HyperText
-├── RichTextEditor (Standard mode)
-│   ├── Toolbar (Google Docs style)
-│   ├── ContentEditable area
-│   └── Preview (HTML/Text/JSON)
-│
-├── VirtualizedEditor (Performance mode)
-│   ├── TanStack Virtual (render only visible)
-│   ├── Block parser (split into chunks)
-│   └── Dynamic measurements
-│
-├── PerformanceTest (Benchmarking lab)
-│   ├── Generate up to 20K blocks
-│   ├── Real-time FPS measurement
-│   ├── Memory monitoring
-│   └── Auto-scroll testing
-│
-└── Loro CRDT (Collaboration)
-    ├── Conflict-free merging
-    ├── Offline support
-    └── Real-time sync
+
+### Controlled Mode with External State
+
+```tsx
+import { useState } from 'react';
+import { EditorBlock } from 'nextext-editor';
+import 'nextext-editor/styles.css';
+
+function App() {
+  const [content, setContent] = useState('<p>Initial content</p>');
+
+  return (
+    <EditorBlock
+      externalContent={content}
+      onContentChange={setContent}
+      showPreview
+    />
+  );
+}
+```
+
+### Using Loro CRDT for Collaboration
+
+```tsx
+import { useLoroEditor, EditorBlock } from 'nextext-editor';
+import 'nextext-editor/styles.css';
+
+function CollaborativeEditor() {
+  const { content, updateContent, loroDoc } = useLoroEditor();
+
+  // Share loroDoc with other clients for real-time sync
+
+  return (
+    <EditorBlock
+      externalContent={content}
+      onContentChange={updateContent}
+    />
+  );
+}
+```
+
+### Using Editor Directly (Headless)
+
+If you want to build your own toolbar and UI, use the low-level `Editor` component:
+
+```tsx
+import { useState } from 'react';
+import { Editor } from 'nextext-editor';
+import 'nextext-editor/styles.css';
+
+function CustomEditor() {
+  const [content, setContent] = useState('<p>Start typing...</p>');
+
+  return (
+    <div>
+      <div className="my-custom-toolbar">
+        <button onClick={() => document.execCommand('bold')}>Bold</button>
+        <button onClick={() => document.execCommand('italic')}>Italic</button>
+      </div>
+      <Editor
+        content={content}
+        onContentChange={setContent}
+        placeholder="Write something..."
+      />
+    </div>
+  );
+}
 ```
 
 ## Tech Stack
 
 - **React 18** - UI framework
 - **TypeScript** - Type safety
-- **Loro CRDT** - Collaboration (built-in)
-- **TanStack Virtual** - Virtual scrolling
-- **TanStack Query** - Data fetching
+- **Loro CRDT** - Conflict-free collaboration
 - **Tailwind CSS v4** - Styling
-- **Vite 6** - Build tool
 - **Lucide React** - Icons
+- **Vite** - Build tool
 
-## Documentation
+## API Reference
 
-- [Performance Test Guide](./PERFORMANCE_TEST_GUIDE.md)
-- [FPS Measurement Explained](./FPS_MEASUREMENT_EXPLAINED.md)
-- [vs TipTap/ProseMirror](./VS_TIPTAP_PROSEMIRROR.md)
-- [Marketing & Positioning](./MARKETING.md)
-
-## Keyboard Shortcuts
-
-- **Ctrl/Cmd + B**: Bold
-- **Ctrl/Cmd + I**: Italic
-- **Ctrl/Cmd + U**: Underline
-- **Ctrl/Cmd + Z**: Undo
-- **Ctrl/Cmd + Y**: Redo
-
-## Project Structure (Monorepo)
-
-```
-hyper-text/
-├── packages/
-│   └── editor/                      # @hyper-text/editor (NPM package)
-│       ├── src/
-│       │   ├── components/
-│       │   │   ├── Editor.tsx       # Main editor (virtualized + standard)
-│       │   │   ├── Toolbar.tsx      # Google Docs toolbar
-│       │   │   ├── HeadingSelector.tsx
-│       │   │   ├── ColorPicker.tsx
-│       │   │   └── Preview.tsx
-│       │   ├── hooks/
-│       │   │   └── useLoroEditor.ts # Loro CRDT hook
-│       │   ├── types/
-│       │   │   └── editor.ts        # TypeScript types
-│       │   └── styles/
-│       │       └── editor.css       # Editor styles
-│       ├── package.json
-│       └── vite.config.ts           # Library build config
-│
-├── apps/
-│   └── demo/                        # @hyper-text/demo (Demo app)
-│       ├── src/
-│       │   ├── components/
-│       │   │   ├── PerformanceTestEditor.tsx
-│       │   │   └── Sidebar.tsx
-│       │   └── App.tsx
-│       └── package.json
-│
-├── pnpm-workspace.yaml              # PNPM workspaces config
-├── package.json                     # Root monorepo scripts
-├── tsconfig.json                    # Root TypeScript config
-└── README.md
-```
-
-## 📊 Bundle Size
-
-| Package | Size (minified) | Size (gzipped) |
-|---------|-----------------|----------------|
-| `@hyper-text/editor` | ~45KB | ~15KB |
-
-Run `pnpm analyze` to generate interactive bundle analysis.
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18+
-- pnpm 8+
-
-### Installation
-
-```bash
-# Install dependencies
-pnpm install
-
-# Build the editor package first
-pnpm build:editor
-
-# Start the demo app
-pnpm dev
-```
-
-### Available Scripts
-
-```bash
-pnpm dev              # Run demo app in dev mode
-pnpm build            # Build all packages
-pnpm build:editor     # Build editor package only
-pnpm analyze          # Generate bundle size treemap
-pnpm clean            # Clean all dist folders
-```
-
-## Using @hyper-text/editor
-
-### Installation
-
-```bash
-pnpm add @hyper-text/editor
-```
-
-### Basic Usage
-
-```tsx
-import { Editor } from '@hyper-text/editor';
-import '@hyper-text/editor/styles.css';
-
-function App() {
-  return <Editor showVirtualizationToggle showPreview />;
-}
-```
-
-### With External State
-
-```tsx
-import { Editor, useLoroEditor } from '@hyper-text/editor';
-import '@hyper-text/editor/styles.css';
-
-function App() {
-  const { content, updateContent } = useLoroEditor();
-  
-  return (
-    <Editor
-      externalContent={content}
-      onContentChange={updateContent}
-      enableVirtualization
-    />
-  );
-}
-```
-
-### Editor Props
+### Editor Props (Core ContentEditable Component)
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `enableVirtualization` | `boolean` | `false` | Enable virtualized rendering |
-| `showVirtualizationToggle` | `boolean` | `false` | Show virtualization toggle |
-| `showPreview` | `boolean` | `true` | Show HTML/Text/JSON preview |
-| `externalContent` | `string` | - | Controlled content |
-| `onContentChange` | `(html: string) => void` | - | Content change handler |
+| `content` | `string` | **required** | HTML content to display |
+| `onContentChange` | `(html: string) => void` | **required** | Called when content changes |
+| `placeholder` | `string` | `"Start typing..."` | Placeholder text when empty |
+| `className` | `string` | - | Custom class for the editable area |
+| `tokens` | `EditorTokens` | `editorTokens` | Custom design tokens |
 
-## TipTap Performance Comparison
+### EditorBlock Props (Complete Editor with Toolbar & Preview)
 
-We've built a **real-time benchmark tool** comparing HyperText vs TipTap:
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `initialContent` | `string` | - | Initial HTML content |
+| `showPreview` | `boolean` | `false` | Show live preview panel |
+| `showToolbar` | `boolean` | `true` | Show formatting toolbar |
+| `externalContent` | `string` | - | Controlled content (for controlled mode) |
+| `onContentChange` | `(html: string) => void` | - | Content change callback |
+| `className` | `string` | - | Custom container class |
+| `placeholder` | `string` | `"Start typing..."` | Placeholder text |
+| `tokens` | `EditorTokens` | `editorTokens` | Custom design tokens |
 
-```bash
-pnpm dev
-# Navigate to "vs TipTap" in the sidebar
+### useLoroEditor Hook
+
+Returns an object with:
+
+```tsx
+{
+  content: string;              // Current HTML content
+  format: TextFormat;           // Current text format state
+  updateContent: (html: string) => void;  // Update content
+  insertText: (text: string, position?: number) => void;  // Insert text
+  deleteText: (start: number, length: number) => void;  // Delete text
+  applyFormat: (start: number, end: number, format: TextFormat) => void;  // Apply formatting
+  getSnapshot: () => Uint8Array;  // Export Loro snapshot
+  loadSnapshot: (snapshot: Uint8Array) => void;  // Import Loro snapshot
+  loroDoc: Loro | null;         // Raw Loro document instance
+}
 ```
 
-**Results with 10,000 blocks:**
-- **HyperText**: 60 FPS, 48 MB memory, 300 DOM nodes
-- **TipTap**: 22 FPS, 580 MB memory, 30,000 DOM nodes
+### Design Tokens
 
-**HyperText is 2.7x faster and uses 12x less memory.** [See full comparison →](./TIPTAP_COMPARISON.md)
+Customize the editor's appearance by passing custom tokens:
 
-## Roadmap
+```tsx
+import { EditorBlock, editorTokens } from 'nextext-editor';
 
-- [x] Image upload/paste (just added!)
-- [x] TipTap performance comparison tool
-- [ ] Table support
-- [ ] Markdown import/export
-- [ ] Real-time collaboration server
-- [ ] Browser extension
-- [ ] Plugins API
-- [ ] More AI integrations (OpenAI, Anthropic, Cohere)
-- [ ] Mobile app (React Native)
+const customTokens = {
+  ...editorTokens,
+  container: {
+    ...editorTokens.container,
+    base: 'w-full bg-slate-900 rounded-xl border border-slate-700',
+  },
+  editor: {
+    ...editorTokens.editor,
+    base: 'min-h-[500px] p-8 text-slate-100',
+  },
+};
 
-## Why This Matters
+function App() {
+  return <EditorBlock tokens={customTokens} />;
+}
+```
 
-**AI is changing how we create content.**
+## Toolbar Actions
 
-- ChatGPT generates 2,000+ words per response
-- Claude can write 4,000+ word articles
-- AI tools generate entire documents in seconds
+The editor supports these formatting actions:
 
-**Traditional editors weren't built for this.**
+### Text Formatting
+- `bold` - Toggle bold text
+- `italic` - Toggle italic text
+- `underline` - Toggle underline
+- `strikethrough` - Toggle strikethrough
+- `code` - Toggle inline code
+- `textColor` - Change text color
+- `highlight` - Change background color
+- `clearMarks` - Remove all formatting
 
-HyperText was. Built for the AI era. Built for performance. Built for scale.
+### Block Types
+- `paragraph` - Normal paragraph
+- `h1`, `h2`, `h3`, `h4`, `h5`, `h6` - Headings
+- `bulletList` - Unordered list
+- `numberedList` - Ordered list
+- `codeBlock` - Code block
+- `blockquote` - Blockquote
+- `clearNodes` - Reset to paragraph
+
+### Content
+- `image` - Upload image (max 5MB)
+- `table` - Insert 3x3 table
+- `horizontalRule` - Insert horizontal line
+- `hardBreak` - Insert line break
+
+### History
+- `undo` - Undo last change
+- `redo` - Redo last change
+
+## Keyboard Shortcuts
+
+- **Ctrl/Cmd + B** - Bold
+- **Ctrl/Cmd + I** - Italic
+- **Ctrl/Cmd + U** - Underline
+- **Ctrl/Cmd + Z** - Undo
+- **Ctrl/Cmd + Y** - Redo
+
+## Architecture
+
+The editor follows a clean component hierarchy:
+
+```
+Editor (Core - in components/)
+└── Low-level contentEditable component
+    └── Handles HTML editing, cursor management, keyboard events
+
+EditorBlock (Complete Editor - in block/)
+├── Uses Editor component
+├── Adds Toolbar
+├── Adds Preview panel
+├── Adds word/character count
+└── Integrates with Loro CRDT via useLoroEditor hook
+```
+
+**File Structure:**
+```
+src/
+├── components/
+│   ├── Editor.tsx          ← Core contentEditable (low-level)
+│   ├── Toolbar.tsx
+│   ├── Preview.tsx
+│   └── ...
+├── block/
+│   └── EditorBlock.tsx     ← Complete editor (high-level)
+├── hooks/
+│   └── useLoroEditor.ts
+└── index.ts
+```
+
+## Exported Components
+
+```tsx
+import {
+  Editor,           // Core contentEditable component (low-level)
+  EditorBlock,      // Complete editor with toolbar & preview (high-level)
+  Toolbar,          // Formatting toolbar component
+  Preview,          // Preview panel component
+  ColorPicker,      // Color picker dropdown
+  HeadingSelector,  // Heading selector dropdown
+} from 'nextext-editor';
+```
+
+## Exported Utilities
+
+```tsx
+import {
+  useLoroEditor,    // Loro CRDT hook
+  editorTokens,     // Default design tokens
+  cn,               // className utility (clsx + tailwind-merge)
+} from 'nextext-editor';
+```
+
+## TypeScript Types
+
+```tsx
+import type {
+  TextFormat,       // Text formatting state
+  EditorState,      // Editor state
+  ToolbarAction,    // Toolbar action types
+  PreviewMode,      // Preview mode ('html' | 'text' | 'json')
+  EditorTokens,     // Design tokens type
+  EditorBlockProps, // EditorBlock props
+} from 'nextext-editor';
+```
 
 ## License
 
-MIT
+MIT © [NaveenChand](https://github.com/NaveenChand755)
 
 ## Contributing
 
-Contributions welcome! Please open issues or submit pull requests.
+Contributions are welcome! Please check out the [GitHub repository](https://github.com/NaveenChand755/hyper-text).
 
----
+## Support
 
-Built with ❤️ for developers building AI-powered apps.
-# hyper-text
+- 🐛 [Report Issues](https://github.com/NaveenChand755/hyper-text/issues)
+- 💬 [Discussions](https://github.com/NaveenChand755/hyper-text/discussions)
+- 📖 [Documentation](https://github.com/NaveenChand755/hyper-text#readme)

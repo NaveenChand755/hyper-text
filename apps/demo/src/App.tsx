@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Editor } from "nextext-editor";
+import { EditorBlock } from "nextext-editor";
 import { PerformanceTestEditor } from "./components/PerformanceTestEditor";
-import { EditorComparison } from "./components/EditorComparison";
 import { Sidebar } from "./components/Sidebar";
 import "nextext-editor/styles.css";
 
 const queryClient = new QueryClient();
 
-type Page = "editor" | "performance" | "comparison";
+type Page = "editor" | "performance";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>("editor");
@@ -31,17 +30,15 @@ function App() {
                   </p>
                 </header>
 
-                <Editor/>
+                <EditorBlock showPreview/>
 
                 <footer className="mt-12 text-center text-sm text-gray-500">
                   <p>Built with React, Loro CRDT, TanStack, and Tailwind CSS</p>
                 </footer>
               </div>
             </div>
-          ) : currentPage === "performance" ? (
-            <PerformanceTestEditor />
           ) : (
-            <EditorComparison />
+            <PerformanceTestEditor />
           )}
         </main>
       </div>
