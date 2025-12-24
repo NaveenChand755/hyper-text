@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Editor } from "@hyper-text/editor";
+import { Editor } from "hyper-text-editor";
 import { PerformanceTestEditor } from "./components/PerformanceTestEditor";
 import { EditorComparison } from "./components/EditorComparison";
 import { Sidebar } from "./components/Sidebar";
-import "@hyper-text/editor/styles.css";
+import "hyper-text-editor/styles.css";
 
 const queryClient = new QueryClient();
 
@@ -31,7 +31,7 @@ function App() {
                   </p>
                 </header>
 
-                <Editor showVirtualizationToggle />
+                <Editor/>
 
                 <footer className="mt-12 text-center text-sm text-gray-500">
                   <p>Built with React, Loro CRDT, TanStack, and Tailwind CSS</p>

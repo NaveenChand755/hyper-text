@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import TiptapImage from '@tiptap/extension-image';
-import { Editor, useLoroEditor } from '@hyper-text/editor';
-import '@hyper-text/editor/styles.css';
+import { Editor, useLoroEditor } from 'hyper-text-editor';
+import 'hyper-text-editor/styles.css';
 import { Activity, Zap, Download, Play, Pause, RotateCcw, Trophy, ArrowRight } from 'lucide-react';
 
 interface PerformanceMetrics {
@@ -401,7 +401,6 @@ export const EditorComparison: React.FC = () => {
             </div>
             <div className="h-[500px]">
               <Editor
-                enableVirtualization={useVirtualization}
                 showPreview={false}
                 externalContent={hypertextContent}
                 onContentChange={updateHypertextContent}

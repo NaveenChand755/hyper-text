@@ -12,7 +12,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import { Editor, useLoroEditor } from '@hyper-text/editor';
+import { Editor, useLoroEditor } from 'hyper-text-editor';
 
 interface PerformanceMetrics {
   domNodes: number;
@@ -442,7 +442,6 @@ export const PerformanceTestEditor: React.FC = () => {
         <div className="h-full p-6">
           <div className="h-full bg-white rounded-xl shadow-lg overflow-hidden">
             <Editor 
-              enableVirtualization={useVirtualization} 
               showPreview={false}
               externalContent={content}
               onContentChange={updateContent}

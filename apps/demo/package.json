@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@hyper-text/editor": "workspace:*",
+    "hyper-text-editor": "workspace:*",
     "@tanstack/react-query": "^5.59.0",
     "@tiptap/extension-image": "^3.13.0",
     "@tiptap/react": "^3.13.0",

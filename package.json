@@ -6,11 +6,11 @@
   "scripts": {
     "dev": "pnpm --filter @hyper-text/demo dev",
     "build": "pnpm -r build",
-    "build:editor": "pnpm --filter @hyper-text/editor build",
+    "build:editor": "pnpm --filter hyper-text-editor build",
     "build:demo": "pnpm --filter @hyper-text/demo build",
     "preview": "pnpm --filter @hyper-text/demo preview",
     "lint": "pnpm -r lint",
-    "analyze": "pnpm --filter @hyper-text/editor build:analyze",
+    "analyze": "pnpm --filter hyper-text-editor build:analyze",
     "clean": "rm -rf packages/*/dist apps/*/dist node_modules/.cache"
   },
   "devDependencies": {
